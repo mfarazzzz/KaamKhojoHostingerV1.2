@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://kaamkhojo.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+# Allow important pages
+Allow: /jobs
+Allow: /news
+Allow: /post-job
+Allow: /login
+
+# Block search result pages with parameters
+Disallow: /*?*
+Allow: /jobs?*
+Allow: /news?*
