@@ -1,19 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  reactStrictMode: true,
+
   images: {
     domains: ['images.pexels.com', 'kaamkhojo.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.pexels.com',
-        port: '',
         pathname: '/**',
       },
     ],
   },
+
   async rewrites() {
     return [
       {
@@ -26,6 +25,7 @@ const nextConfig = {
       },
     ];
   },
+
   async headers() {
     return [
       {
