@@ -1,6 +1,25 @@
-import React, { useState } from 'react';
-import { FileText, Clock, CheckCircle, XCircle, Eye, Calendar, Building, MapPin } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+  Calendar,
+  Building,
+  MapPin,
+} from 'lucide-react';
 import { useJobStore } from '../store/jobStore';
+
+/* ================= TYPES ================= */
+
+type ApplicationStatus =
+  | 'applied'
+  | 'under-review'
+  | 'shortlisted'
+  | 'interview-scheduled'
+  | 'rejected'
+  | 'hired';
 
 interface Application {
   id: string;
@@ -9,13 +28,25 @@ interface Application {
   company: string;
   location: string;
   appliedDate: Date;
-  status: 'applied' | 'under-review' | 'shortlisted' | 'interview-scheduled' | 'rejected' | 'hired';
+  status: ApplicationStatus;
   lastUpdate: Date;
   notes?: string;
 }
 
+type StatusConfig = {
+  [key in ApplicationStatus]: {
+    icon: React.ElementType;
+    color: string;
+    bg: string;
+    label: string;
+  };
+};
+
+/* ================= COMPONENT ================= */
+
 const ApplicationTracker: React.FC = () => {
   const { appliedJobs } = useJobStore();
+
   const [applications] = useState<Application[]>([
     {
       id: '1',
@@ -26,7 +57,7 @@ const ApplicationTracker: React.FC = () => {
       appliedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       status: 'under-review',
       lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      notes: 'Application submitted with portfolio'
+      notes: 'Application submitted with portfolio',
     },
     {
       id: '2',
@@ -37,7 +68,7 @@ const ApplicationTracker: React.FC = () => {
       appliedDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
       status: 'interview-scheduled',
       lastUpdate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      notes: 'Interview scheduled for tomorrow at 2 PM'
+      notes: 'Interview scheduled for tomorrow at 2 PM',
     },
     {
       id: '3',
@@ -48,76 +79,88 @@ const ApplicationTracker: React.FC = () => {
       appliedDate: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
       status: 'rejected',
       lastUpdate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      notes: 'Position filled by internal candidate'
-    }
+      notes: 'Position filled by internal candidate',
+    },
   ]);
 
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus | 'all'>('all');
 
-  const statusConfig = {
-    'applied': { 
-      icon: FileText, 
-      color: 'text-blue-600', 
-      bg: 'bg-blue-100', 
-      label: 'Applied' 
+  /* ================= STATUS CONFIG ================= */
+
+  const statusConfig: StatusConfig = {
+    applied: {
+      icon: FileText,
+      color: 'text-blue-600',
+      bg: 'bg-blue-100',
+      label: 'Applied',
     },
-    'under-review': { 
-      icon: Clock, 
-      color: 'text-yellow-600', 
-      bg: 'bg-yellow-100', 
-      label: 'Under Review' 
+    'under-review': {
+      icon: Clock,
+      color: 'text-yellow-600',
+      bg: 'bg-yellow-100',
+      label: 'Under Review',
     },
-    'shortlisted': { 
-      icon: CheckCircle, 
-      color: 'text-green-600', 
-      bg: 'bg-green-100', 
-      label: 'Shortlisted' 
+    shortlisted: {
+      icon: CheckCircle,
+      color: 'text-green-600',
+      bg: 'bg-green-100',
+      label: 'Shortlisted',
     },
-    'interview-scheduled': { 
-      icon: Calendar, 
-      color: 'text-purple-600', 
-      bg: 'bg-purple-100', 
-      label: 'Interview Scheduled' 
+    'interview-scheduled': {
+      icon: Calendar,
+      color: 'text-purple-600',
+      bg: 'bg-purple-100',
+      label: 'Interview Scheduled',
     },
-    'rejected': { 
-      icon: XCircle, 
-      color: 'text-red-600', 
-      bg: 'bg-red-100', 
-      label: 'Rejected' 
+    rejected: {
+      icon: XCircle,
+      color: 'text-red-600',
+      bg: 'bg-red-100',
+      label: 'Rejected',
     },
-    'hired': { 
-      icon: CheckCircle, 
-      color: 'text-green-600', 
-      bg: 'bg-green-100', 
-      label: 'Hired' 
+    hired: {
+      icon: CheckCircle,
+      color: 'text-green-600',
+      bg: 'bg-green-100',
+      label: 'Hired',
+    },
+  };
+
+  /* ================= DERIVED DATA ================= */
+
+  const statusCounts = useMemo(() => {
+    const base: Record<ApplicationStatus, number> = {
+      applied: 0,
+      'under-review': 0,
+      shortlisted: 0,
+      'interview-scheduled': 0,
+      rejected: 0,
+      hired: 0,
+    };
+
+    for (const app of applications) {
+      base[app.status]++;
     }
-  };
 
-  const filteredApplications = selectedStatus === 'all' 
-    ? applications 
-    : applications.filter(app => app.status === selectedStatus);
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-IN', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  const getStatusCounts = () => {
-    const counts = applications.reduce((acc, app) => {
-      acc[app.status] = (acc[app.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
     return {
       total: applications.length,
-      ...counts
+      ...base,
     };
-  };
+  }, [applications]);
 
-  const statusCounts = getStatusCounts();
+  const filteredApplications =
+    selectedStatus === 'all'
+      ? applications
+      : applications.filter(app => app.status === selectedStatus);
+
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+
+  /* ================= UI ================= */
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -138,115 +181,86 @@ const ApplicationTracker: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div
               onClick={() => setSelectedStatus('all')}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                selectedStatus === 'all' 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 bg-white hover:border-gray-300'
+              className={`p-4 rounded-lg border-2 cursor-pointer ${
+                selectedStatus === 'all'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 bg-white'
               }`}
             >
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{statusCounts.total}</div>
+                <div className="text-2xl font-bold">{statusCounts.total}</div>
                 <div className="text-sm text-gray-600">Total</div>
               </div>
             </div>
-            
-            {Object.entries(statusConfig).map(([status, config]) => (
-              <div
-                key={status}
-                onClick={() => setSelectedStatus(status)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedStatus === status 
-                    ? `border-${config.color.split('-')[1]}-500 ${config.bg}` 
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                }`}
-              >
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {statusCounts[status] || 0}
+
+            {(Object.keys(statusConfig) as ApplicationStatus[]).map(status => {
+              const config = statusConfig[status];
+              return (
+                <div
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`p-4 rounded-lg border-2 cursor-pointer ${
+                    selectedStatus === status
+                      ? `${config.bg} border-gray-400`
+                      : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">
+                      {statusCounts[status]}
+                    </div>
+                    <div className="text-sm text-gray-600">{config.label}</div>
                   </div>
-                  <div className="text-sm text-gray-600">{config.label}</div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Applications List */}
-        <div className="p-6">
-          {filteredApplications.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {selectedStatus === 'all' ? 'No Applications Yet' : `No ${statusConfig[selectedStatus as keyof typeof statusConfig]?.label} Applications`}
-              </h3>
-              <p className="text-gray-600">
-                {selectedStatus === 'all' 
-                  ? 'Start applying to jobs to track your applications here'
-                  : 'No applications with this status found'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredApplications.map((application) => {
-                const StatusIcon = statusConfig[application.status].icon;
-                
-                return (
-                  <div
-                    key={application.id}
-                    className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {application.jobTitle}
-                          </h3>
-                          <span className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConfig[application.status].bg} ${statusConfig[application.status].color}`}>
-                            <StatusIcon className="h-4 w-4 mr-1" />
-                            {statusConfig[application.status].label}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-6 text-sm text-gray-600 mb-3">
-                          <div className="flex items-center">
-                            <Building className="h-4 w-4 mr-1" />
-                            {application.company}
-                          </div>
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {application.location}
-                          </div>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div>
-                            <span className="font-medium">Applied:</span> {formatDate(application.appliedDate)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Last Update:</span> {formatDate(application.lastUpdate)}
-                          </div>
-                        </div>
-                        
-                        {application.notes && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <p className="text-sm text-gray-700">{application.notes}</p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex gap-2 ml-4">
-                        <button className="flex items-center px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Job
-                        </button>
-                      </div>
+        {/* Applications */}
+        <div className="p-6 space-y-4">
+          {filteredApplications.map(app => {
+            const StatusIcon = statusConfig[app.status].icon;
+
+            return (
+              <div
+                key={app.id}
+                className="border border-gray-200 rounded-lg p-6 hover:shadow-md"
+              >
+                <div className="flex justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{app.jobTitle}</h3>
+                    <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                      <span className="flex items-center">
+                        <Building className="h-4 w-4 mr-1" />
+                        {app.company}
+                      </span>
+                      <span className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {app.location}
+                      </span>
                     </div>
+
+                    <div className="text-sm text-gray-600 mt-2">
+                      Applied: {formatDate(app.appliedDate)} · Last update:{' '}
+                      {formatDate(app.lastUpdate)}
+                    </div>
+
+                    {app.notes && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded">
+                        {app.notes}
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  <button className="flex items-center text-blue-600">
+                    <Eye className="h-4 w-4 mr-1" />
+                    View Job
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
