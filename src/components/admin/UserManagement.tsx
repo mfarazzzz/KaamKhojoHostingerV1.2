@@ -362,8 +362,10 @@ const UserManagement: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium text-gray-900">{user.name}</h3>
                           {user.verified && (
-                            <CheckCircle className="h-4 w-4 text-green-500" title="Verified" />
-                          )}
+                           <CheckCircle className="h-4 w-4 text-green-500">
+  <title>Verified</title>
+</CheckCircle>
+
                         </div>
                         <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                           <div className="flex items-center">
