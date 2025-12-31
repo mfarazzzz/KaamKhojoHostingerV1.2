@@ -2,6 +2,12 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 const params = useSearchParams();
+type Filters = {
+  keyword?: string;
+  location?: string;
+  category?: string;
+  jobType?: string;
+};
 
 const updateURL = (updates: Partial<Filters>) => {
   const newParams = new URLSearchParams(
