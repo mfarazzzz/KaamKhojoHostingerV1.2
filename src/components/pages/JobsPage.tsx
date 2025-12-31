@@ -1,32 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import Jobs from '@/pages/Jobs';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+type JobFilters = {
+  q: string;
+  location: string;
+  category: string;
+};
+
 export default function JobsPage() {
-  const [currentPage, setCurrentPage] = useState('jobs');
-  const searchParams = useSearchParams();
+  const params = useSearchParams();
+
+  const [filters, setFilters] = useState<JobFilters>({
+    q: '',
+    location: '',
+    category: ''
+  });
 
   useEffect(() => {
-    // Handle search parameters from URL
-    const query = searchParams.get('q');
-    const location = searchParams.get('location');
-    const category = searchParams.get('category');
-    
-    if (query || location || category) {
-      console.log('Search params:', { query, location, category });
-      // You can pass these to the Jobs component or handle them as needed
-    }
-  }, [searchParams]);
+    // ✅ HARD GUARD — TypeScript safe
+    if (params === null) return;
+
+    const q = params.get('q') ?? '';
+    const location = params.get('location') ?? '';
+    const category = params.get('category') ?? '';
+
+    setFilters({ q, location, category });
+  }, [params]);
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header currentPage={currentPage} onPageChange={setCurrentPage} />
-      <Jobs />
-      <Footer />
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Jobs</h1>
+
+      <div className="bg-gray-100 p-4 rounded">
+        <p><strong>Keyword:</strong> {filters.q || '—'}</p>
+        <p><strong>Location:</strong> {filters.location || '—'}</p>
+        <p><strong>Category:</strong> {filters.category || '—'}</p>
+      </div>
+
+      <div className="text-gray-500">
+        Job listings will be rendered here
+      </div>
     </div>
   );
 }
