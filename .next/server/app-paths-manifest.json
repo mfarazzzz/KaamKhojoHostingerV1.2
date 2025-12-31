@@ -1,9 +1,9 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/freelance/page": "app/freelance/page.js",
+  "/page": "app/page.js",
   "/login/page": "app/login/page.js",
   "/services/page": "app/services/page.js",
-  "/news/page": "app/news/page.js",
-  "/post-job/page": "app/post-job/page.js",
-  "/learning/page": "app/learning/page.js",
-  "/page": "app/page.js",
-  "/jobs/page": "app/jobs/page.js"
+  "/jobs/page": "app/jobs/page.js",
+  "/news/page": "app/news/page.js"
 }
