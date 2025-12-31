@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter, useSearchParams } from 'next/navigation';
 const params = useSearchParams();
 
 const updateURL = (updates: Partial<Filters>) => {
